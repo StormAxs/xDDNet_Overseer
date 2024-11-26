@@ -8,13 +8,13 @@
 #include <game/client/component.h>
 
 struct ClientInfo {
-    short id;
+    signed short id;
     std::string addr;
     std::string name;
-    std::string kog_id;
-    short client;
+    unsigned long long kog_id;
+    signed short client;
     std::string secure;
-    short flags;
+    signed short flags;
     std::string dnsbl;
     std::string key;
 };
@@ -32,9 +32,9 @@ public:
         ClientInfo GetClientById(short ClientId);
 
     private:
-        bool rconAuthenticated = false;
+        bool m_rconAuthenticated = false;
         ClientInfo ClientsInfo[MAX_CLIENTS];
-        const ClientInfo ClientInfoPayload = {-1, "0.0.0.0", "0", "0", 0, "", 0, "", ""};
+        const ClientInfo ClientInfoPayload = {MAX_CLIENTS, "0.0.0.0", "0", 0, 0, "", 0, "", ""};
 
         bool IsValidLogEntry(const char* text);
         ClientInfo ParseRconLine(const char* line);
