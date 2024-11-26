@@ -14,20 +14,17 @@ void CGameConsoleParse::RconAuthenticated(bool status) {
 void CGameConsoleParse::Refresh() {
     if(!m_rconAuthenticated)return;
 
-
     CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
     CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_Backlog;
 
-
     rconConsole->ExecuteLine("status");
 
-    for(CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.First(); pEntry; pEntry = rconConsoleLog.Next(pEntry))
-    {
+    for(CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.get(); pEntry; pEntry = rconConsoleLog.Next(pEntry))
+    {        
         if(!IsValidLogEntry(pEntry->m_aText))continue; // Validate line
 
         ClientInfo pClient = ParseRconLine(pEntry->m_aText);
         ClientsInfo[pClient.id] = pClient;
-
     }    
 }
 
