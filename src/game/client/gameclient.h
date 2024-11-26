@@ -130,7 +130,7 @@ public:
 	CMotd m_Motd;
 	CBroadcast m_Broadcast;
 	CGameConsole m_GameConsole;
-	RconLogEntry m_RconLogEntry;
+	CGameConsoleParse m_GameConsoleParse;
 	CBinds m_Binds;
 	CParticles m_Particles;
 	CMenus m_Menus;
