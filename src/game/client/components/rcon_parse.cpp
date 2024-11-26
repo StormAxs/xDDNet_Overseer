@@ -8,11 +8,11 @@ void CGameConsoleParse::OnInit() {
 }
 
 void CGameConsoleParse::RconAuthenticated(bool status) {
-    rconAuthenticated = status;
+    m_rconAuthenticated = status;
 }
 
 void CGameConsoleParse::Refresh() {
-    if(!rconAuthenticated)return;
+    if(!m_rconAuthenticated)return;
 
 
     CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
@@ -43,7 +43,7 @@ bool CGameConsoleParse::IsValidLogEntry(const char* text) {
 }
 
 // Регулярное выражение для парсинга строк
-ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
+inline ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
     std::regex regex(R"((\w+)=('[^']*'|[^ ]+))");
     std::smatch match;
 
@@ -63,7 +63,7 @@ ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
         if(key=="id")result.id = atoi(value.c_str());
         else if(key=="addr")result.addr = value;
         else if(key=="name")result.name = value;
-        else if(key=="kog_id")result.kog_id = value;
+        else if(key=="kog_id")result.kog_id = atoi(value.c_str());
         else if(key=="client")result.client = atoi(value.c_str());
         else if(key=="secure")result.secure = value;
         else if(key=="flags")result.flags = atoi(value.c_str());
