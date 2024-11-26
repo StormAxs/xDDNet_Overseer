@@ -47,7 +47,19 @@ void CMenus::RenderServerOverseerPanel(CUIRect MainView) {
     static int s_SelectedPlayerIndex = -1; // Selected player index
 
     if(Client()->RconAuthed()) {
-       // Players search
+
+
+		// FIX THIS KOSTYL
+		static bool isWorking = true;
+
+		if(isWorking){
+			m_pClient->m_GameConsoleParse.RconAuthenticated(true);
+			m_pClient->m_GameConsoleParse.Refresh();
+
+			isWorking = false;
+		}
+
+        // Players search
 		LeftView.HSplitTop(20.f, &Line, &LeftView);
 		Line.VSplitRight(20.f, &Line, &Rect);
 		Line.VSplitRight(5.f, &Line, nullptr);
@@ -104,7 +116,7 @@ void CMenus::RenderServerOverseerPanel(CUIRect MainView) {
 			Line.HMargin(3.f, &Rect);
 			Ui()->DoLabel(&Rect, Client.m_aName, 15.f, TEXTALIGN_LEFT);
 			Line.HSplitBottom(12.f, nullptr, &Rect);
-			//Ui()->DoLabel(&Rect, Client.m_aClan, 8.f, TEXTALIGN_LEFT);
+			Ui()->DoLabel(&Rect, Client.m_aClan, 8.f, TEXTALIGN_LEFT);
 		}
 
 		s_ScrollRegion.End();
@@ -115,15 +127,16 @@ void CMenus::RenderServerOverseerPanel(CUIRect MainView) {
 	CUIRect addr;
     if(s_SelectedPlayerIndex != -1) {
     	CGameClient::CClientData &Client = GameClient()->m_aClients[s_SelectedPlayerIndex];
+		ClientInfo pClient = m_pClient->m_GameConsoleParse.GetClientById(s_SelectedPlayerIndex);
+
 		std::string pName = Client.m_aName;
-    	CRconParse::ParsePlayerInfo(pName);
         char aBuf[256];
         str_format(aBuf, sizeof(aBuf), "Selected Player: %s", Client.m_aName);
         Ui()->DoLabel(&RightView, aBuf, 10.0f, TEXTALIGN_LEFT);
     	char adBuf[256];
 		RightView.HSplitTop(RightView.h, &RightView, &addr);
     	RightView.Draw(ColorRGBA(1.f, 0.f, 0.f, 0.f), IGraphics::CORNER_B, 10);
-    	str_format(adBuf, sizeof(adBuf), "Selected addr: %s", RconLogEntry().addr.c_str());
+    	str_format(adBuf, sizeof(adBuf), "Selected addr: %s", pClient.addr.c_str());
     	Ui()->DoLabel(&addr, adBuf, 10.0f, TEXTALIGN_LEFT);
 
     }

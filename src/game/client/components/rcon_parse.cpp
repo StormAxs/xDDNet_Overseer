@@ -1,50 +1,76 @@
 #include "rcon_parse.h"
 
-// Parses player info from a given text input
-RconLogEntry CRconParse::ParsePlayerInfo(const std::string& text) {
-    std::regex regex(R"((\w+)='([^']+)'|(\w+)=(\S+))");
-    std::smatch match;
+#include <game/client/gameclient.h>
+#include <game/client/components/console.h>
 
-    RconLogEntry entry = {0, "1.1.1.1", "", 0, "", 0, "", ""}; // Initialize with default values
-
-    auto it = text.cbegin();
-    while (std::regex_search(it, text.cend(), match, regex)) {
-        std::string key = match[1].str().empty() ? match[3].str() : match[1].str();
-        std::string value = match[1].str().empty() ? match[4].str() : match[2].str();
-
-        // Remove single quotes from values if they exist
-        if (value.front() == '\'' && value.back() == '\'') {
-            value = value.substr(1, value.size() - 2);
-        }
-
-        // Assign values to the entry based on the key
-        if (key == "id") {
-            entry.id = std::stoi(value);
-        } else if (key == "addr") {
-            entry.addr = value;
-        } else if (key == "name") {
-            entry.name = value;
-        } else if (key == "client") {
-            entry.client = std::stoi(value);
-        } else if (key == "secure") {
-            entry.secure = value;
-        } else if (key == "flags") {
-            entry.flags = std::stoi(value);
-        } else if (key == "dnsbl") {
-            entry.dnsbl = value;
-        } else if (key == "key") {
-            entry.key = value;
-        }
-
-        it = match[0].second; // Move iterator forward
-        dbg_msg("RCON", "%s", text.c_str());
-    }
-
-    return entry;
+void CGameConsoleParse::OnInit() {
+    for(short i = 0; i < MAX_CLIENTS; i++)ClientsInfo[i] = ClientInfoPayload;
 }
 
-// Validates a single RCON log line
-bool CRconParse::ValidateRconLogLine(const std::string& line) {
-    // Basic validation: check if the line is not empty and contains expected format
-    return !line.empty() && std::regex_match(line, std::regex(R"(\w+=\S+)"));
+void CGameConsoleParse::RconAuthenticated(bool status) {
+    rconAuthenticated = status;
+}
+
+void CGameConsoleParse::Refresh() {
+    if(!rconAuthenticated)return;
+
+
+    CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
+    CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_Backlog;
+
+
+    rconConsole->ExecuteLine("status");
+
+    for(CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.First(); pEntry; pEntry = rconConsoleLog.Next(pEntry))
+    {
+        if(!IsValidLogEntry(pEntry->m_aText))continue; // Validate line
+
+        ClientInfo pClient = ParseRconLine(pEntry->m_aText);
+        ClientsInfo[pClient.id] = pClient;
+
+    }    
+}
+
+ClientInfo CGameConsoleParse::GetClientById(short ClientId) {
+    if(ClientId>MAX_CLIENTS || ClientId<0)return ClientInfoPayload;
+    return ClientsInfo[ClientId];
+}
+
+// Регулярное выражение для валидации строки
+bool CGameConsoleParse::IsValidLogEntry(const char* text) { 
+    std::regex logPattern(R"(^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} I server: id=(?:[0-6]?\d|[1-9][0-9]) (?:\([a-f0-9-]+\) )?addr=[^ ]+ name='[^']*' (?:kog_id=\d+ )?client=\d+ secure=(yes|no) flags=([0-9]{1,3}|[1-9][0-9]{1,2}|1000)(?:\s+dnsbl=[a-zA-Z]+)?(?:\s+key=[^ ]+(?:\s+\([^)]+\))?)?$)");
+    return std::regex_match(text, logPattern);
+}
+
+// Регулярное выражение для парсинга строк
+ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
+    std::regex regex(R"((\w+)=('[^']*'|[^ ]+))");
+    std::smatch match;
+
+    std::string lineStr(line);
+
+    ClientInfo result = ClientInfoPayload;
+
+    // Итерация по всем совпадениям
+    auto it = lineStr.cbegin();
+    while (std::regex_search(it, lineStr.cend(), match, regex)) {
+        std::string key = match[1].str(); // Имя параметра
+        std::string value = match[2].str(); // Значение параметра
+
+        // Удаляем одинарные кавычки из значений, если они есть
+        if (value.front() == '\'' && value.back() == '\'') value = value.substr(1, value.size() - 2);
+        
+        if(key=="id")result.id = atoi(value.c_str());
+        else if(key=="addr")result.addr = value;
+        else if(key=="name")result.name = value;
+        else if(key=="kog_id")result.kog_id = value;
+        else if(key=="client")result.client = atoi(value.c_str());
+        else if(key=="secure")result.secure = value;
+        else if(key=="flags")result.flags = atoi(value.c_str());
+        else if(key=="dnsbl")result.dnsbl = value;
+        else if(key=="key")result.key = value;
+        
+        it = match[0].second; // Обновляем итератор
+    }
+    return result;
 }
