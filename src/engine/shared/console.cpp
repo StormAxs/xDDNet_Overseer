@@ -351,6 +351,7 @@ void CConsole::SetUnknownCommandCallback(FUnknownCommandCallback pfnCallback, vo
 	m_pUnknownCommandUserdata = pUser;
 }
 
+
 void CConsole::InitChecksum(CChecksumData *pData) const
 {
 	pData->m_NumCommands = 0;

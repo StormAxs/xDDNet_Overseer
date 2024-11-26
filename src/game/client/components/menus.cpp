@@ -745,6 +745,13 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 			NewPage = PAGE_CALLVOTE;
 			m_ControlPageOpening = true;
 		}
+
+		Box.VSplitLeft(100.0f, &Button, &Box);
+		Box.VSplitLeft(4.0f, nullptr, &Box);
+		static CButtonContainer s_OverseerButton;
+			if(DoButton_MenuTab(&s_OverseerButton, Localize("MODERATOR)))"), ActivePage == PAGE_OVS, &Button, IGraphics::CORNER_TR))
+				NewPage = PAGE_OVS;
+
 	}
 
 	if(NewPage != -1)
@@ -1172,6 +1179,10 @@ void CMenus::Render()
 			else if(m_GamePage == PAGE_CALLVOTE)
 			{
 				RenderServerControl(MainView);
+			}
+			else if(m_GamePage == PAGE_OVS)
+			{
+				RenderServerOverseerPanel(MainView);
 			}
 			else if(m_GamePage == PAGE_SETTINGS)
 			{

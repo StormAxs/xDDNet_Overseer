@@ -3133,11 +3133,10 @@ void CServer::ConStatus(IConsole::IResult *pResult, void *pUser)
 
 			char aAuthStr[128];
 			aAuthStr[0] = '\0';
-			if(pThis->m_aClients[i].m_AuthKey >= 0)
-			{
+			if(pThis->m_aClients[i].m_AuthKey >= 0) {
 				const char *pAuthStr = pThis->m_aClients[i].m_Authed == AUTHED_ADMIN ? "(Admin)" :
-												       pThis->m_aClients[i].m_Authed == AUTHED_MOD ? "(Mod)" :
-																		     pThis->m_aClients[i].m_Authed == AUTHED_HELPER ? "(Helper)" : "";
+													   pThis->m_aClients[i].m_Authed == AUTHED_MOD ? "(Mod)" :
+																			 pThis->m_aClients[i].m_Authed == AUTHED_HELPER ? "(Helper)" : "";
 
 				str_format(aAuthStr, sizeof(aAuthStr), " key=%s %s", pThis->m_AuthManager.KeyIdent(pThis->m_aClients[i].m_AuthKey), pAuthStr);
 			}

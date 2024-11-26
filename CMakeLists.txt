@@ -2062,6 +2062,7 @@ set_src(ENGINE_SHARED GLOB_RECURSE src/engine/shared
   config.cpp
   config.h
   config_variables.h
+  config_ovs.h
   console.cpp
   console.h
   csv.cpp
@@ -2374,13 +2375,16 @@ if(CLIENT)
     components/menus.h
     components/menus_browser.cpp
     components/menus_demo.cpp
+    components/menus_ingame_ovs.cpp
     components/menus_ingame.cpp
     components/menus_settings.cpp
+    components/menus_settings_ovs.cpp
     components/menus_settings7.cpp
     components/menus_settings_assets.cpp
     components/menus_start.cpp
     components/motd.cpp
     components/motd.h
+    components/rcon_parse.cpp
     components/nameplates.cpp
     components/nameplates.h
     components/particles.cpp

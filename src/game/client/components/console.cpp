@@ -848,7 +848,7 @@ void CGameConsole::CInstance::Dump()
 	if(File)
 	{
 		PumpBacklogPending();
-		for(CInstance::CBacklogEntry *pEntry = m_Backlog.First(); pEntry; pEntry = m_Backlog.Next(pEntry))
+		for(CBacklogEntry *pEntry = m_Backlog.First(); pEntry; pEntry = m_Backlog.Next(pEntry))
 		{
 			io_write(File, pEntry->m_aText, pEntry->m_Length);
 			io_write_newline(File);

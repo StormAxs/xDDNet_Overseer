@@ -25,6 +25,7 @@ class CConsoleLogger;
 class CGameConsole : public CComponent
 {
 	friend class CConsoleLogger;
+public:
 	class CInstance
 	{
 	public:
@@ -134,6 +135,7 @@ class CGameConsole : public CComponent
 
 		void UpdateEntryTextAttributes(CBacklogEntry *pEntry) const;
 
+
 	private:
 		void UpdateSearch();
 
@@ -146,8 +148,6 @@ class CGameConsole : public CComponent
 	CInstance m_LocalConsole;
 	CInstance m_RemoteConsole;
 
-	CInstance *ConsoleForType(int ConsoleType);
-	CInstance *CurrentConsole();
 
 	int m_ConsoleType;
 	int m_ConsoleState;
@@ -172,6 +172,10 @@ class CGameConsole : public CComponent
 	static void ConchainConsoleOutputLevel(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 public:
+
+	CInstance *ConsoleForType(int ConsoleType);
+	CInstance *CurrentConsole();
+
 	enum
 	{
 		CONSOLETYPE_LOCAL = 0,

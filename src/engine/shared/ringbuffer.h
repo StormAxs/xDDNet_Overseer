@@ -82,6 +82,8 @@ public:
 	CStaticRingBuffer() { Init(); }
 
 	void Init() { CRingBufferBase::Init(m_aBuffer, TSIZE, TFLAGS); }
+
+	std::string GetLine(int i);
 };
 
 template<typename T>

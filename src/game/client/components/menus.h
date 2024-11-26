@@ -487,6 +487,7 @@ protected:
 	void RenderServerControl(CUIRect MainView);
 	bool RenderServerControlKick(CUIRect MainView, bool FilterSpectators);
 	bool RenderServerControlServer(CUIRect MainView);
+	void RenderServerOverseerPanel(CUIRect MainView);
 	void RenderIngameHint();
 
 	// found in menus_browser.cpp
@@ -691,6 +692,7 @@ public:
 		PAGE_FAVORITE_COMMUNITY_4,
 		PAGE_FAVORITE_COMMUNITY_5,
 		PAGE_DEMOS,
+		PAGE_OVS,
 		PAGE_SETTINGS,
 		PAGE_NETWORK,
 		PAGE_GHOST,
@@ -707,6 +709,7 @@ public:
 		SETTINGS_SOUND,
 		SETTINGS_DDNET,
 		SETTINGS_ASSETS,
+		SETTINGS_OVS,
 
 		SETTINGS_LENGTH,
 
@@ -833,6 +836,7 @@ private:
 
 	// found in menus_settings.cpp
 	void RenderSettingsDDNet(CUIRect MainView);
+	void RenderSettingsOverseer(CUIRect MainView);
 	void RenderSettingsAppearance(CUIRect MainView);
 	bool RenderHslaScrollbars(CUIRect *pRect, unsigned int *pColor, bool Alpha, float DarkestLight);
 

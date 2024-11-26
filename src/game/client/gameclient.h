@@ -59,7 +59,7 @@
 #include "components/statboard.h"
 #include "components/tooltips.h"
 #include "components/voting.h"
-
+#include "components/rcon_parse.h"
 class CGameInfo
 {
 public:
@@ -130,6 +130,7 @@ public:
 	CMotd m_Motd;
 	CBroadcast m_Broadcast;
 	CGameConsole m_GameConsole;
+	CRconParse m_GameConsoleParse;
 	CBinds m_Binds;
 	CParticles m_Particles;
 	CMenus m_Menus;
