@@ -36,10 +36,9 @@ public:
     private:
         bool m_rconAuthenticated = false;
         ClientInfo ClientsInfo[MAX_CLIENTS];
-        const int maxEntries = 200; // Maximum number of entries to process
         const ClientInfo ClientInfoPayload = {
             MAX_CLIENTS,
-            "0.0.0.0:00000",
+            "0.0.0.0",
             "",
             0,
             0,
@@ -47,7 +46,7 @@ public:
             0,
             "",
             ""};
-
+        inline void RefreshClientsInfo();
         bool IsValidLogEntry(const char* text);
         std::string extractIP(const std::string& input);
         ClientInfo ParseRconLine(const char* line);
