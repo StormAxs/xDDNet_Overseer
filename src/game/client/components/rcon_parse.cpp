@@ -7,6 +7,10 @@
 #include <game/client/components/console.h>
 
 void CGameConsoleParse::OnInit() {
+    RefreshClientsInfo();
+}
+
+inline void CGameConsoleParse::RefreshClientsInfo() {
     for(short i = 0; i < MAX_CLIENTS; i++)ClientsInfo[i] = ClientInfoPayload;
 }
 
@@ -15,8 +19,9 @@ void CGameConsoleParse::RconAuthenticated(bool status) {
 }
 
 void CGameConsoleParse::Refresh() {
-    dbg_msg("refresh", "HI");
     if(!m_rconAuthenticated)return;
+
+    RefreshClientsInfo(); // отчищаем массив
 
     CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
     CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_BacklogPending;
@@ -24,18 +29,19 @@ void CGameConsoleParse::Refresh() {
     rconConsole->ExecuteLine("show_ips 1");
     rconConsole->ExecuteLine("status");
 
-    // Use async to create a delayed processing task
-        short processedCount = 200; // Counter for processed entries
+    short processedCount = 200; // Counter for processed entries
 
-        for (CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.Last(); pEntry; pEntry = rconConsoleLog.Prev(pEntry)) {
-            processedCount--;
-            dbg_msg("refresh", "%p", pEntry);
-            if (processedCount < 0) break;
+    for (CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.Last(); pEntry; pEntry = rconConsoleLog.Prev(pEntry)) {
+        if (processedCount < 0) break;
+        processedCount--;
 
-            if (!IsValidLogEntry(pEntry->m_aText)) continue; // Validate line
-            ClientInfo pClient = ParseRconLine(pEntry->m_aText);
-            ClientsInfo[pClient.id] = pClient;
-        }
+        if (!IsValidLogEntry(pEntry->m_aText)) continue; // Validate line
+        ClientInfo pClient = ParseRconLine(pEntry->m_aText);
+        
+        if (strcmp(ClientsInfo[pClient.id].addr, ClientInfoPayload.addr) != 0) continue; // Убираем возможность перезаписи
+
+        ClientsInfo[pClient.id] = pClient;
+    }
 
 }
 
@@ -51,6 +57,12 @@ bool CGameConsoleParse::IsValidLogEntry(const char* text) {
     return std::regex_match(text, logPattern);
 }
 
+// Извлечения IP-адреса
+std::string CGameConsoleParse::extractIP(const std::string& input) {
+    size_t colonPos = input.find(':');
+    if (colonPos != std::string::npos) return input.substr(0, colonPos); // Возвращаем часть строки до двоеточия
+    return input; // Если двоеточия нет, возвращаем всю строку
+}
 // Регулярное выражение для парсинга строк
 ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
     std::regex Regex(R"((\w+)=('[^']*'|[^ ]+))");
@@ -70,13 +82,16 @@ ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
         if (value.front() == '\'' && value.back() == '\'') value = value.substr(1, value.size() - 2);
 
         if(key=="id")Result.id = atoi(value.c_str());
-        else if(key=="addr")Result.addr = value;
-        else if(key=="name")Result.name = value;
+        else if(key=="addr")strcpy(Result.addr, extractIP(value).c_str());
+        else if(key=="name")strcpy(Result.name, value.c_str());
         else if(key=="kog_id")Result.kog_id = atoi(value.c_str());
         else if(key=="client")Result.client = atoi(value.c_str());
-        else if(key=="secure")Result.secure = value;
+        else if(key=="secure"){
+            if(value=="yes")Result.secure = true;
+            else Result.secure = false;
+        }
         else if(key=="flags")Result.flags = atoi(value.c_str());
-        else if(key=="dnsbl")Result.dnsbl = value;
+        else if(key=="dnsbl")strcpy(Result.dnsbl, value.c_str());
         else if(key=="key")Result.key = value;
         
         it = match[0].second; // Обновляем итератор
