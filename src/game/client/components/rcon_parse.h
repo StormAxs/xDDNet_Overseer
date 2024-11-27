@@ -39,7 +39,7 @@ public:
         const int maxEntries = 200; // Maximum number of entries to process
         const ClientInfo ClientInfoPayload = {
             MAX_CLIENTS,
-            "0.0.0.0",
+            "0.0.0.0:00000",
             "",
             0,
             0,
