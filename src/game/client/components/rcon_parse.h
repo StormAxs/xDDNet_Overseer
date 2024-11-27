@@ -13,7 +13,7 @@ struct ClientInfo {
     std::string name;
     unsigned long long kog_id;
     signed short client;
-    std::string secure;
+    bool secure;
     signed short flags;
     std::string dnsbl;
     std::string key;
@@ -43,12 +43,13 @@ public:
             "",
             0,
             0,
-            "",
+            false,
             0,
             "",
             ""};
 
         bool IsValidLogEntry(const char* text);
+        std::string extractIP(const std::string& input);
         ClientInfo ParseRconLine(const char* line);
 };
 
