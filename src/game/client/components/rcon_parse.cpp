@@ -57,7 +57,7 @@ std::string CGameConsoleParse::extractIP(const std::string& input) {
     std::smatch match;
 
     if (std::regex_match(input, match, ipRegex)) return match[1]; // Возвращаем только IP-адрес
-    return ""; // Возвращаем пустую строку, если формат не совпадает
+    return ClientInfoPayload.addr; // Возвращаем пустую строку, если формат не совпадает
 }
 // Регулярное выражение для парсинга строк
 ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
