@@ -116,7 +116,7 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
     Ui()->DoLabel(&Rect, Client.m_aClan, 8.f, TEXTALIGN_LEFT);
 
     // Create a "Mute" button positioned to the left of the "Kick" button
-    Line.VSplitRight(Line.w / 7, &Line, &Rect); // Adjust 180.f as needed for the button width
+    Line.VSplitRight(Line.w / 7, &Line, &Rect);
     Rect.h = 25.f; // Set button height
     Rect.y += (30.f - Rect.h) / 2; // Center the button vertically within the 30.f height
 	Rect.w = 60.f; // Set width for the "Mute" button
@@ -152,20 +152,42 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
 }
 			s_ScrollRegion.End();
 	}
-
 		//---> Right side
 		// Display selected player information
-		CUIRect addr;
+		CUIRect PlayerInfo, CopyView;
 		if(s_SelectedPlayerIndex != -1) {
+
+
 			CGameClient::CClientData &Client = GameClient()->m_aClients[s_SelectedPlayerIndex];
 			ClientInfo pClient = m_pClient->m_GameConsoleParse.GetClientById(s_SelectedPlayerIndex);
 
+			RightView.HSplitTop(RightView.h / 3, &PlayerInfo, &RightView);
+			PlayerInfo.Draw(ColorRGBA(0.f, 0.f, 0.f, 0.3f), IGraphics::CORNER_R, 5);
+
+
+			CTeeRenderInfo RenderInfo = Client.m_RenderInfo;
+			RenderInfo.m_Size = 60.f;
+			vec2 OffsetToMid;
+			CRenderTools::GetRenderTeeOffsetToRenderedTee(CAnimState::GetIdle(), &RenderInfo, OffsetToMid);
+			const vec2 TeeRenderPos = vec2(PlayerInfo.x + PlayerInfo.h / 4, PlayerInfo.y + PlayerInfo.h / 4 + OffsetToMid.y);
+			RenderTools()->RenderTee(CAnimState::GetIdle(), &RenderInfo, EMOTE_NORMAL, vec2(1, 0), TeeRenderPos);
+
+			PlayerInfo.HSplitBottom(PlayerInfo.h / 3, &PlayerInfo, &CopyView);
+			CUIRect id, name, addr, kog_id, client, dnsbl;
+
+			PlayerInfo.HSplitTop(PlayerInfo.h / 3, &id, &PlayerInfo);
+			id.VSplitMid(&id, &addr);
+			char bBuf[8];
+			id.VSplitMid(nullptr, &id);
+			str_format(bBuf, sizeof(bBuf), "ID:%d", pClient.id);
+			Ui()->DoLabel(&id, bBuf, 20.0f, TEXTALIGN_LEFT);
+
+			char cBuf[64];
+			str_format(cBuf, sizeof(cBuf), "IP:%s", pClient.addr.c_str());
+			Ui()->DoLabel(&addr, cBuf, 20.0f, TEXTALIGN_LEFT);
+
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "Selected Player: %s", Client.m_aName);
-			Ui()->DoLabel(&RightView, aBuf, 10.0f, TEXTALIGN_LEFT);
-			char adBuf[256];
-			str_format(adBuf, sizeof(adBuf), "Selected addr: %s", pClient.addr.c_str());
-			Ui()->DoLabel(&addr, adBuf, 10.0f, TEXTALIGN_LEFT);
-
+			Ui()->DoLabel(&RightView, aBuf, 10.0f, TEXTALIGN_TL);
 		}
 }

@@ -40,7 +40,7 @@ public:
         const ClientInfo ClientInfoPayload = {
             MAX_CLIENTS,
             "0.0.0.0",
-            "0",
+            "",
             0,
             0,
             "",

@@ -2385,6 +2385,7 @@ if(CLIENT)
     components/motd.cpp
     components/motd.h
     components/rcon_parse.cpp
+    components/rcon_parse.h
     components/nameplates.cpp
     components/nameplates.h
     components/particles.cpp

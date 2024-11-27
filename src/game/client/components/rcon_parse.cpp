@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <future>
+#include <unistd.h>
 #include <game/client/gameclient.h>
 #include <game/client/components/console.h>
 
@@ -14,30 +15,28 @@ void CGameConsoleParse::RconAuthenticated(bool status) {
 }
 
 void CGameConsoleParse::Refresh() {
-    if (!m_rconAuthenticated) return;
+    dbg_msg("refresh", "HI");
+    if(!m_rconAuthenticated)return;
 
-    // Run the RCON command execution and waiting asynchronously
-    std::async(std::launch::async, [this]() {
-        CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
-        CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_Backlog;
+    CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
+    CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_BacklogPending;
 
-        rconConsole->ExecuteLine("show_ips 1");
-        rconConsole->ExecuteLine("status");
+    rconConsole->ExecuteLine("show_ips 1");
+    rconConsole->ExecuteLine("status");
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-        int processedCount = 200; // Counter for processed entries
+    // Use async to create a delayed processing task
+        short processedCount = 200; // Counter for processed entries
 
         for (CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.Last(); pEntry; pEntry = rconConsoleLog.Prev(pEntry)) {
             processedCount--;
+            dbg_msg("refresh", "%p", pEntry);
             if (processedCount < 0) break;
 
             if (!IsValidLogEntry(pEntry->m_aText)) continue; // Validate line
             ClientInfo pClient = ParseRconLine(pEntry->m_aText);
             ClientsInfo[pClient.id] = pClient;
-
         }
-    });
+
 }
 
 ClientInfo CGameConsoleParse::GetClientById(short ClientId) {
@@ -53,7 +52,7 @@ bool CGameConsoleParse::IsValidLogEntry(const char* text) {
 }
 
 // Регулярное выражение для парсинга строк
-inline ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
+ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
     std::regex Regex(R"((\w+)=('[^']*'|[^ ]+))");
     std::smatch match;
 
@@ -69,7 +68,7 @@ inline ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
 
         // Удаляем одинарные кавычки из значений, если они есть
         if (value.front() == '\'' && value.back() == '\'') value = value.substr(1, value.size() - 2);
-        
+
         if(key=="id")Result.id = atoi(value.c_str());
         else if(key=="addr")Result.addr = value;
         else if(key=="name")Result.name = value;
