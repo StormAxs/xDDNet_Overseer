@@ -1,5 +1,7 @@
 #include "rcon_parse.h"
 
+#include <thread>
+#include <future>
 #include <game/client/gameclient.h>
 #include <game/client/components/console.h>
 
@@ -12,24 +14,35 @@ void CGameConsoleParse::RconAuthenticated(bool status) {
 }
 
 void CGameConsoleParse::Refresh() {
-    if(!m_rconAuthenticated)return;
+    if (!m_rconAuthenticated) return;
 
-    CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
-    CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_Backlog;
+    // Run the RCON command execution and waiting asynchronously
+    std::async(std::launch::async, [this]() {
+        CGameConsole::CInstance *rconConsole = m_pClient->m_GameConsole.ConsoleForType(CGameConsole::CONSOLETYPE_REMOTE);
+        CStaticRingBuffer<CGameConsole::CInstance::CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> rconConsoleLog = rconConsole->m_Backlog;
 
-    rconConsole->ExecuteLine("status");
+        rconConsole->ExecuteLine("show_ips 1");
+        rconConsole->ExecuteLine("status");
 
-    for(CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.get(); pEntry; pEntry = rconConsoleLog.Next(pEntry))
-    {        
-        if(!IsValidLogEntry(pEntry->m_aText))continue; // Validate line
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-        ClientInfo pClient = ParseRconLine(pEntry->m_aText);
-        ClientsInfo[pClient.id] = pClient;
-    }    
+        int processedCount = 200; // Counter for processed entries
+
+        for (CGameConsole::CInstance::CBacklogEntry *pEntry = rconConsoleLog.Last(); pEntry; pEntry = rconConsoleLog.Prev(pEntry)) {
+            processedCount--;
+            if (processedCount < 0) break;
+
+            if (!IsValidLogEntry(pEntry->m_aText)) continue; // Validate line
+            ClientInfo pClient = ParseRconLine(pEntry->m_aText);
+            ClientsInfo[pClient.id] = pClient;
+
+        }
+    });
 }
 
 ClientInfo CGameConsoleParse::GetClientById(short ClientId) {
-    if(ClientId>MAX_CLIENTS || ClientId<0)return ClientInfoPayload;
+    if(ClientId > MAX_CLIENTS || ClientId < 0)
+    return ClientInfoPayload;
     return ClientsInfo[ClientId];
 }
 
@@ -41,33 +54,33 @@ bool CGameConsoleParse::IsValidLogEntry(const char* text) {
 
 // Регулярное выражение для парсинга строк
 inline ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
-    std::regex regex(R"((\w+)=('[^']*'|[^ ]+))");
+    std::regex Regex(R"((\w+)=('[^']*'|[^ ]+))");
     std::smatch match;
 
-    std::string lineStr(line);
+    std::string LineStr(line);
 
-    ClientInfo result = ClientInfoPayload;
+    ClientInfo Result = ClientInfoPayload;
 
     // Итерация по всем совпадениям
-    auto it = lineStr.cbegin();
-    while (std::regex_search(it, lineStr.cend(), match, regex)) {
+    auto it = LineStr.cbegin();
+    while (std::regex_search(it, LineStr.cend(), match, Regex)) {
         std::string key = match[1].str(); // Имя параметра
         std::string value = match[2].str(); // Значение параметра
 
         // Удаляем одинарные кавычки из значений, если они есть
         if (value.front() == '\'' && value.back() == '\'') value = value.substr(1, value.size() - 2);
         
-        if(key=="id")result.id = atoi(value.c_str());
-        else if(key=="addr")result.addr = value;
-        else if(key=="name")result.name = value;
-        else if(key=="kog_id")result.kog_id = atoi(value.c_str());
-        else if(key=="client")result.client = atoi(value.c_str());
-        else if(key=="secure")result.secure = value;
-        else if(key=="flags")result.flags = atoi(value.c_str());
-        else if(key=="dnsbl")result.dnsbl = value;
-        else if(key=="key")result.key = value;
+        if(key=="id")Result.id = atoi(value.c_str());
+        else if(key=="addr")Result.addr = value;
+        else if(key=="name")Result.name = value;
+        else if(key=="kog_id")Result.kog_id = atoi(value.c_str());
+        else if(key=="client")Result.client = atoi(value.c_str());
+        else if(key=="secure")Result.secure = value;
+        else if(key=="flags")Result.flags = atoi(value.c_str());
+        else if(key=="dnsbl")Result.dnsbl = value;
+        else if(key=="key")Result.key = value;
         
         it = match[0].second; // Обновляем итератор
     }
-    return result;
+    return Result;
 }

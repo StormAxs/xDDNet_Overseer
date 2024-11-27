@@ -31,10 +31,22 @@ public:
 
         ClientInfo GetClientById(short ClientId);
 
+
+
     private:
         bool m_rconAuthenticated = false;
         ClientInfo ClientsInfo[MAX_CLIENTS];
-        const ClientInfo ClientInfoPayload = {MAX_CLIENTS, "0.0.0.0", "0", 0, 0, "", 0, "", ""};
+        const int maxEntries = 200; // Maximum number of entries to process
+        const ClientInfo ClientInfoPayload = {
+            MAX_CLIENTS,
+            "0.0.0.0",
+            "0",
+            0,
+            0,
+            "",
+            0,
+            "",
+            ""};
 
         bool IsValidLogEntry(const char* text);
         ClientInfo ParseRconLine(const char* line);
