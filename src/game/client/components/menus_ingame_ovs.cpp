@@ -183,7 +183,7 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
 			Ui()->DoLabel(&id, bBuf, 20.0f, TEXTALIGN_LEFT);
 
 			char cBuf[64];
-			str_format(cBuf, sizeof(cBuf), "IP:%s", pClient.addr.c_str());
+			str_format(cBuf, sizeof(cBuf), "IP:%s", pClient.addr);
 			Ui()->DoLabel(&addr, cBuf, 20.0f, TEXTALIGN_LEFT);
 
 			char aBuf[256];

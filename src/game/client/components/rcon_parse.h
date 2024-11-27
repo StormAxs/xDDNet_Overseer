@@ -9,13 +9,13 @@
 
 struct ClientInfo {
     signed short id;
-    std::string addr;
-    std::string name;
+    char addr[15];
+    char name[MAX_NAME_LENGTH];
     unsigned long long kog_id;
     signed short client;
     bool secure;
     signed short flags;
-    std::string dnsbl;
+    char dnsbl[5];
     std::string key;
 };
 

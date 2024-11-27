@@ -78,8 +78,8 @@ ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
         if (value.front() == '\'' && value.back() == '\'') value = value.substr(1, value.size() - 2);
 
         if(key=="id")Result.id = atoi(value.c_str());
-        else if(key=="addr")Result.addr = extractIP(value);
-        else if(key=="name")Result.name = value;
+        else if(key=="addr")strcpy(Result.addr, extractIP(value).c_str());
+        else if(key=="name")strcpy(Result.name, value.c_str());
         else if(key=="kog_id")Result.kog_id = atoi(value.c_str());
         else if(key=="client")Result.client = atoi(value.c_str());
         else if(key=="secure"){
@@ -87,7 +87,7 @@ ClientInfo CGameConsoleParse::ParseRconLine(const char* line) {
             else Result.secure = false;
         }
         else if(key=="flags")Result.flags = atoi(value.c_str());
-        else if(key=="dnsbl")Result.dnsbl = value;
+        else if(key=="dnsbl")strcpy(Result.dnsbl, value.c_str());
         else if(key=="key")Result.key = value;
         
         it = match[0].second; // Обновляем итератор
