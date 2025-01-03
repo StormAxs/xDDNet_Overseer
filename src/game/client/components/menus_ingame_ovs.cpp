@@ -39,6 +39,8 @@ using namespace std::chrono_literals;
 
 
 void CMenus::RenderServerOverseerPanel(CUIRect MainView) {
+
+	static bool isOpen = false;
 	MainView.Draw(ms_ColorTabbarActive, IGraphics::CORNER_B, 10.0f);
 	MainView.Margin(20.0f, &MainView);
 	CUIRect LeftView, RightView, Line, Rect;
@@ -48,13 +50,12 @@ void CMenus::RenderServerOverseerPanel(CUIRect MainView) {
 
 	if(Client()->RconAuthed()) {
 		// FIX THIS KOSTYL
-		static bool isWorking = true;
 
-		if(isWorking){
+		if(!isOpen){
 			m_pClient->m_GameConsoleParse.RconAuthenticated(true);
 			m_pClient->m_GameConsoleParse.Refresh();
 
-			isWorking = false;
+			isOpen = true;
 		}
 
 		// Players search
@@ -100,6 +101,9 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
     // Background for player line
     Line.Draw(ColorRGBA(1.f, 1.f, 1.f, s_SelectedPlayerIndex == i ? 0.4f : 0.2f), IGraphics::CORNER_ALL, 5);
 
+	ClientInfo pClient = m_pClient->m_GameConsoleParse.GetClientById(s_SelectedPlayerIndex);
+
+
     // Player skin
     Line.VSplitLeft(30.f, &Rect, &Line);
     CTeeRenderInfo RenderInfo = Client.m_RenderInfo;
@@ -123,6 +127,7 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
 //TODO: 4:3 support (console resize support from xc_client)
 	if (DoButton_Menu(&s_aButtons[MAX_CLIENTS + i], "Ban", 0, &Rect, 0x0, IGraphics::CORNER_R, 6, 0, ColorRGBA(1.f, 0.0f, 0.0f, 0.3f))) {
         PlayerSelected = false; // Prevent player selection
+		m_pClient->m_GameConsoleParse.Refresh();
     }
 
     // Create a "Kick" button positioned to the right of the "Mute" button
@@ -191,3 +196,4 @@ for (int i = 0; i < MAX_CLIENTS; i++) {
 			Ui()->DoLabel(&RightView, aBuf, 10.0f, TEXTALIGN_TL);
 		}
 }
+//TODO: Нофис сосал1
